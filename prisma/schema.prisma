@@ -1,0 +1,286 @@
+// AbetFlow - Workflow automation engine.
+//
+// SQLite by default so the product runs with zero infrastructure.
+// For Postgres: change `provider` to "postgresql" and point DATABASE_URL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workflows   Workflow[]
+  credentials Credential[]
+  variables   Variable[]
+  executions  Execution[]
+  memberships Membership[]
+  sessions   Session[]
+  invites     Invite[]
+  apiKeys     ApiKey[]
+}
+
+model Workflow {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  description String?
+  // { kind: "manual" | "webhook" | "cron", path?, secret?, cron? }
+  trigger     Json
+  // { nodes: [{ id, type, config, next?, nextTrue?, nextFalse?, onError? }] }
+  definition  Json
+  status      String   @default("DRAFT") // DRAFT | ACTIVE | PAUSED | ARCHIVED
+  // Next scheduled run, maintained by the cron checker.
+  nextRunAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  versions  WorkflowVersion[]
+  executions Execution[]
+
+  @@index([workspaceId, status])
+}
+
+/// Immutable snapshot taken on every publish, so a broken edit rolls back
+/// in one call instead of a reconstruction.
+model WorkflowVersion {
+  id          String   @id @default(cuid())
+  workflowId  String
+  version     Int
+  trigger     Json
+  definition  Json
+  note        String?
+  createdAt   DateTime @default(now())
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, version])
+  @@index([workflowId])
+}
+
+model Execution {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workflowId  String
+  // manual | webhook | cron | retry
+  source      String
+  status      String   @default("QUEUED") // QUEUED | RUNNING | COMPLETED | FAILED
+  input       Json?
+  output      Json?
+  error       String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workflow  Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  steps     ExecutionStep[]
+
+  @@index([workspaceId, status])
+  @@index([workflowId, status])
+}
+
+model ExecutionStep {
+  id          String   @id @default(cuid())
+  executionId String
+  position    Int
+  nodeId      String
+  nodeType    String
+  status      String   // OK | FAILED | SKIPPED
+  output      Json?
+  error       String?
+  durationMs  Int?
+  createdAt   DateTime @default(now())
+
+  execution Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@index([executionId, position])
+}
+
+/// Named secrets (API keys, tokens). Only ciphertext leaves this table;
+// the plaintext exists in memory for the duration of one node call.
+model Credential {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  // Which connector this unlocks, e.g. "http", "openai".
+  provider    String
+  ciphertext  String
+  iv          String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+}
+
+/// Shared variables visible to every run as {{vars.name}}.
+model Variable {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  value       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+}
+
+/// Workspace-scoped API keys. Plaintext is shown once at mint and never stored.
+model ApiKey {
+  id          String    @id @default(cuid())
+  workspaceId String
+  name        String
+  /// sha256 of the full key. Lookup is by hash, never by plaintext.
+  hashedKey   String    @unique
+  /// First characters, safe to display: "lg_live_a1B2…".
+  prefix      String
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+}
+
+/// A person who can sign in to the browser UI. Machine access stays with
+/// `ApiKey`; this row is only for the human holding a cookie.
+model User {
+  id           String   @id @default(cuid())
+  /// Stored lowercased. The unique index is what makes signup idempotent at the
+  /// database level rather than only in application code.
+  email        String   @unique
+  name         String?
+  /// scrypt digest, never a plaintext password. See `src/lib/password.ts` for
+  /// why scrypt and not bcrypt or argon2.
+  passwordHash String
+  /// Set true by the verification link. Enforced at sign-in only when a mail
+  /// provider is configured — see `verificationEnforced()` in `lib/email.ts`.
+  emailVerified Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions               Session[]
+  emailVerificationToken EmailVerificationToken?
+  passwordResetTokens    PasswordResetToken[]
+  /// Every workspace this person can open, with the role each seat carries.
+  memberships    Membership[]
+  invitesCreated Invite[]      @relation("InviteCreatedBy")
+}
+
+/// A browser session. The cookie carries a random token and only its sha256 is
+/// stored, so a database dump yields hashes rather than working logins.
+model Session {
+  id          String   @id @default(cuid())
+  userId      String
+  workspaceId String
+  tokenHash   String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Per-address attempt counter behind the login and signup forms, so one client
+/// cannot grind through a list of addresses.
+model AuthThrottle {
+  /// "<purpose>:<client address>", e.g. "signin:203.0.113.7".
+  key         String    @id
+  /// Events counted inside the current window: failed guesses, or accounts
+  /// created, depending on which form took the tally.
+  count       Int       @default(0)
+  windowStart DateTime  @default(now())
+  lockedUntil DateTime?
+
+  @@index([windowStart])
+}
+
+/// Single-use email-verification link. Stored hashed, like every other secret
+/// here, so a database dump yields no redeemable links.
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+/// Single-use password-reset link. Redeeming it also destroys every session the
+/// user holds, because a reset exists to evict whoever prompted it.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+/// One seat in a workspace. The only membership source of truth — see the
+/// migration note in TEST-REPORT: rows were copied from the old implicit join
+/// table, crediting OWNER to whoever was already there.
+model Membership {
+  id          String   @id @default(cuid())
+  userId      String
+  workspaceId String
+  /// OWNER | ADMIN | MEMBER. Signup creates OWNER; invites can only grant ADMIN
+  /// or MEMBER, so accepting a link can never seize a workspace.
+  role        String   @default("OWNER")
+  createdAt   DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+}
+
+/// A single-use link addressed to one email. Stored hashed, like every other
+/// secret here, so a dump yields no redeemable invitations.
+model Invite {
+  id          String    @id @default(cuid())
+  workspaceId String
+  /// Lowercased. An account that is not this address cannot redeem it.
+  email       String
+  /// ADMIN | MEMBER. OWNER is never issuable.
+  role        String
+  tokenHash   String    @unique
+  createdById String
+  /// Links age out. An invitation left in a chat window or a deleted browser is
+  /// a standing door, and nothing withdraws it when the sender changes their mind.
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy User      @relation("InviteCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([email])
+}
