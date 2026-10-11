@@ -1,0 +1,26 @@
+# Render service manifest for aw-abetflow. Import via Render → New → Blueprint
+# (host this file publicly) or apply from the dashboard.
+#
+# All envVars have `sync: false` — values are not committed here. Set
+# them in your Render service's Environment tab, or in a shared env group
+# if multiple services need the same secret.
+services:
+  - type: web
+    name: aw-abetflow
+    runtime: node
+    plan: free
+    region: singapore
+    healthCheckPath: /
+    buildCommand: npm ci && npx prisma generate && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false       # this service's own public origin, no trailing slash
+      - key: DATABASE_URL
+        sync: false       # Postgres connection string (SQLite default is dev-only)
+      - key: REDIS_URL
+        sync: false       # BullMQ broker for the queues src/lib/queue.ts declares
+      - key: PRODUCT_NAME
+        value: "abetflow"
