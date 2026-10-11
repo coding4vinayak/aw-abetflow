@@ -1,5 +1,8 @@
 # AbetFlow
 
+![CI](https://github.com/coding4vinayak/aw-abetflow/actions/workflows/ci.yml/badge.svg)
+
+
 Workflow automation your ops team can ship on a Tuesday. Define a trigger,
 chain nodes, watch every step land in the execution log.
 
