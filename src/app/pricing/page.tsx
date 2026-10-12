@@ -33,6 +33,19 @@ export default function Page() {
             <a href="mailto:support@abetworks.in?subject=AbetFlow%20enterprise" className="mt-6 block rounded-lg border border-blue-600 px-4 py-2 text-center text-sm font-semibold text-blue-600 hover:bg-blue-50 transition">Talk to us</a>
           </div>
         </div>
+        <h2 className="mt-12 text-xl font-bold">Also in the Abetworks suite</h2>
+        <p className="mt-2 text-gray-600">AbetFlow is free because it is the plumbing the rest of the suite sits on. These are the products teams pair it with — write to us and we will set up one workspace across all of them.</p>
+        <div className="mt-6 space-y-3">
+          <a href="mailto:support@abetworks.in?subject=AbetAgent%20for%20me" className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:bg-gray-50 transition">
+            <span className="font-semibold text-gray-900">AbetAgent</span> <span className="text-gray-600">— agents with citations, step traces and human escalation. $99 per month.</span>
+          </a>
+          <a href="mailto:support@abetworks.in?subject=LeadGenius%20for%20me" className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:bg-gray-50 transition">
+            <span className="font-semibold text-gray-900">LeadGenius</span> <span className="text-gray-600"> — multichannel outreach with warmup and deliverability guardrails. $29 per user per month.</span>
+          </a>
+          <a href="mailto:support@abetworks.in?subject=LeadWorks%20for%20me" className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:bg-gray-50 transition">
+            <span className="font-semibold text-gray-900">LeadWorks</span> <span className="text-gray-600"> — sources, scraping, enrichment, validation and exports in one pipeline. $49 per month.</span>
+          </a>
+        </div>
         <h2 className="mt-12 text-xl font-bold">Questions</h2>
         <div className="mt-4 space-y-4">
           <div><p className="font-semibold text-gray-900">Is there a trial?</p><p className="mt-1 text-gray-600">There is better than a trial: it is included. Open the live demo and run the deal-triage flow now.</p></div>
