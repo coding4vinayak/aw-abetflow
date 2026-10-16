@@ -159,7 +159,10 @@ if (probeUrl) {
       assert.equal(mod.queues.runs, first);
 
       // The connection's own view of where it went, not the string we handed it.
-      const client = await first.waitUntilReady();
+      // bullmq 6: waitUntilReady() resolves void; the raw Redis client lives on
+      // the backend now, which is what the db assertion below is asking about.
+      await first.waitUntilReady();
+      const client = await first.getBackend().client;
       assert.equal((client as unknown as { options?: { db?: number } }).options?.db, expectedDb,
         "the probe must land on the db it was given, not on the import-time default");
 

@@ -10,7 +10,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@prisma/client", "prisma", "bullmq", "ioredis", "jsonata"],
+  serverExternalPackages: ["@prisma/client", "prisma", "@prisma/adapter-better-sqlite3", "better-sqlite3", "bullmq", "ioredis", "jsonata"],
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
