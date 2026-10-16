@@ -152,3 +152,21 @@ export const LLM_TRY_NODE = {
   fields: { kind: "strings", max: 50 },
   model: { kind: "text", max: 120 },
 } satisfies Schema;
+
+/**
+ * Outbound webhook subscriptions. `url` is a caller-named address this server
+ * will POST to whenever a matching event fires, so it is checked twice and for
+ * different things: the table refuses the shape here, and `egress.ts` refuses
+ * the destination at delivery time. `events` is checked by `eventNames` on the
+ * two routes rather than here — the column is a comma string and the accepted
+ * spellings are "array or comma string", a distinction a scalar table cannot
+ * see. `isActive` is the boolean column those rows can be silenced with.
+ */
+export const WEBHOOK_CREATE = {
+  url: { kind: "text", required: true, format: "url", max: 2000 },
+} satisfies Schema;
+
+export const WEBHOOK_PATCH = {
+  url: { kind: "text", format: "url", max: 2000 },
+  isActive: { kind: "bool" },
+} satisfies Schema;

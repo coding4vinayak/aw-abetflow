@@ -28,6 +28,7 @@ model Workspace {
   sessions   Session[]
   invites     Invite[]
   apiKeys     ApiKey[]
+  webhooks    Webhook[]
 }
 
 model Workflow {
@@ -183,6 +184,26 @@ model User {
   /// Every workspace this person can open, with the role each seat carries.
   memberships    Membership[]
   invitesCreated Invite[]      @relation("InviteCreatedBy")
+}
+
+/// A caller-named address this server POSTs execution events to. `events` is a
+/// comma-joined list of the names in `lib/webhooks.ts`; `secret` signs every
+/// delivery under both spellings, so a receiver can tell us from whoever
+/// guesses the URL. A subscription filtered on a name nothing emits is refused
+/// at the write boundary, not stored-and-silent.
+model Webhook {
+  id          String   @id @default(cuid())
+  workspaceId String
+  url         String
+  events      String
+  secret      String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, isActive])
 }
 
 /// A browser session. The cookie carries a random token and only its sha256 is
