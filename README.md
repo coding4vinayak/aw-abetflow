@@ -225,6 +225,10 @@ POST   /api/credentials                    # seal a value (needs ENCRYPTION_KEY)
 GET    /api/variables?workspaceId=         # shared {{vars.*}}
 DELETE /api/variables?workspaceId=&name=   # 404 if the name is not in this workspace
 DELETE /api/credentials?workspaceId=&name= # 404 likewise
+GET    /api/webhooks?workspaceId=          # outbound subscriptions (secrets previewed)
+POST   /api/webhooks                       # subscribe; returns the signing secret once
+PATCH  /api/webhooks?id={id}               # move the URL, re-filter events, silence
+DELETE /api/webhooks?id={id}               # remove (404 if not in this workspace)
 ```
 
 **A DELETE for a row that is not there answers 404, never 500.** The `{id}` routes look the
@@ -236,6 +240,46 @@ which reports a `count` rather than throwing: `count === 0` is the same 404, and
 filter carries the caller's authenticated `workspaceId`, deleting a name that exists only in
 another workspace counts 0 and leaves that row untouched (measured offline on a copy of
 `dev.db`). `tests/unit/delete-missing-row.test.ts` pins both handlers on that shape.
+
+## Outbound webhooks
+
+`POST /api/webhooks` takes `{ workspaceId, url, events }` and answers `201`
+with the subscription and its `secret` — the one response that carries the
+secret; list and read routes preview it instead. `events` accepts an array or a
+comma-separated string, and may name only the events this product emits — an
+unknown name is refused with the list rather than stored, because a
+subscription filtered on a name nothing sends is the same silence as no
+subscription at all:
+
+| Event | Fires when |
+| --- | --- |
+| `execution.completed` | a run reaches its end — manual, webhook, cron or retry |
+| `execution.failed` | a run failed: the graph returned a failed status, or a step threw |
+
+Payloads carry `executionId`, `workflowId`, `source`, the terminal `status`,
+`error` (null on success), `completedAt` and `durationMs`;
+`GET /api/executions/{id}` holds the full step trace when the receiver wants
+the detail. `PATCH /api/webhooks?id={id}` can move the URL, re-filter
+`events`, or silence a subscription with `isActive: false` without deleting
+it; `DELETE` with the same `?id=` removes it. The id rides in the query
+string, not the path, because `/api/webhooks/{path}` is the inbound trigger
+route — a path-segment id would shadow every single-segment trigger slug.
+
+Each delivery is one JSON body `{ id, event, timestamp, data }`, signed with
+HMAC-SHA256 over the raw body using that subscription's secret. The digest
+rides under two headers carrying the same hex: `X-Abetflow-Signature: <hex>`
+(this product's spelling) and `X-Webhook-Signature: sha256=<hex>` — the
+generic spelling an inbound nuCRM plugin webhook
+(`/api/tenant/plugins/webhook/{id}`) verifies out of the box, so a nuCRM
+tenant can point one at this product with no adapter in between. `id` names
+the logical event (`evt_…`); a receiver that deduplicates on it is already
+correct on the day delivery grows retries.
+
+Delivery is one attempt, inline, best-effort and never throwing: an endpoint
+that is down is logged and skipped, and never turns a committed run into a
+failure. `tests/unit/webhook-dispatch.test.ts` pins the wiring — an event
+declared without an emitter, an emitter that moved ahead of the row that makes
+it true, or a delivery that lost its egress check all fail the suite.
 
 ## AI nodes (optional)
 
