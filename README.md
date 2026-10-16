@@ -15,7 +15,9 @@ by a check you can run.
 
 ```bash
 npm install
-npx prisma migrate dev      # creates the SQLite database
+cp .env.example .env        # DATABASE_URL points at the compose Postgres
+docker compose up -d        # local Postgres 16
+npx prisma migrate deploy   # applies the committed migrations
 npm run db:seed             # demo workspace + deal-triage workflow + sample run
 npm run dev                 # http://localhost:3500
 ```
@@ -290,8 +292,8 @@ npm start                 # or: node .next/standalone/server.js
 
 Point the load balancer at `GET /api/health` (200 = serving, 503 = DB down; its `queues`
 object is `Object.entries(queues)`, so it names `runs` and `scheduled` — measured).
-For Postgres, follow the same three steps as abetConnect: provider switch,
-fresh migration history, regenerate. Queue workers (`src/lib/queue.ts`, BullMQ +
+Postgres is the runtime provider since `chore/postgres` (provider switch,
+fresh migration history, regenerate — the abetConnect recipe). Queue workers (`src/lib/queue.ts`, BullMQ +
 Redis) drain two queues. `abetflow-runs` holds the executions API callers
 enqueue. `abetflow-scheduled` holds the cron sweep, which is what makes a cron trigger
 fire at all: `startWorkers()` registers one bullmq job scheduler on it — key
