@@ -22,6 +22,19 @@ const route = source("../../src/app/api/webhooks/route.ts");
 const declared = sender.match(/WEBHOOK_EVENTS = \[([^\]]+)\]/)?.[1] ?? "";
 const menu = [...declared.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
 
+test("both write paths classify the destination before storing it", () => {
+  // The refusal is two-sided on purpose: this check runs when the subscription
+  // is written, `assertAllowedTarget` runs immediately above the delivery fetch.
+  // A route that stopped classifying would still pass every runtime test that
+  // does not stand up a database, so the source is where the contract is read.
+  assert.match(route, /classifyTarget\(input\.data\.url, "url"\)/);
+  assert.equal(
+    (route.match(/classifyTarget\(input\.data\.url, "url"\)/g) ?? []).length,
+    2,
+    "one classify in POST, one in PATCH",
+  );
+});
+
 test("the menu is exactly the two events, in the order the docs list them", () => {
   assert.deepEqual(menu, ["execution.completed", "execution.failed"]);
 });
