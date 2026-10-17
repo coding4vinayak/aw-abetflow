@@ -112,6 +112,39 @@ async function evalJsonata(expression: unknown, scope: EvalScope): Promise<unkno
   return await jsonata(expression).evaluate(scope, { input: scope.input, vars: scope.vars });
 }
 
+/**
+ * JSONata's own boolean rule, asked of JSONata itself.
+ *
+ * `verdict ? nextTrue : nextFalse` is JavaScript truthiness, and it disagrees
+ * with JSONata exactly where empty flows hurt: `[]` and `{}` are false to
+ * JSONata but truthy to JS, so a condition on `input.items` took nextTrue
+ * when the list was empty (`[0]` is false to JSONata too, true to JS). Asking
+ * `$boolean($)` keeps the branch the documented "JSONata truth test" —
+ * including its corners — instead of re-deriving the rules here.
+ */
+export async function jsonataTruth(value: unknown): Promise<boolean> {
+  return (await jsonata("$boolean($)").evaluate(value)) === true;
+}
+
+/**
+ * The stored body of an http_request, capped at the README's 8KB for every
+ * content type.
+ *
+ * This used to slice the text but then `JSON.parse` the *whole* response, so
+ * a 5MB JSON document was stored whole in the step log while the cap was
+ * documented as a general one. Slice first, then try to parse the slice: a
+ * JSON document larger than the cap arrives as its text prefix — a truncated
+ * document must not masquerade as parsed data.
+ */
+export function cappedBody(text: string): unknown {
+  const capped = text.slice(0, HTTP_MAX_CHARS);
+  try {
+    return JSON.parse(capped);
+  } catch {
+    return capped;
+  }
+}
+
 async function httpCall(
   node: FlowNode,
   input: unknown,
@@ -138,12 +171,7 @@ async function httpCall(
       ...(config.body !== undefined ? { body: JSON.stringify(renderDeep(config.body, input, vars)) } : {}),
     });
     const text = await res.text();
-    let body: unknown = text.slice(0, HTTP_MAX_CHARS);
-    try {
-      body = JSON.parse(text);
-    } catch {
-      // Not JSON — the raw text is the body.
-    }
+    const body = cappedBody(text);
     const out = { status: res.status, body };
     if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status} from ${url}`), { response: out });
     return out;
@@ -213,8 +241,12 @@ export async function executeGraph(def: WorkflowDef, input: unknown, ctx: ExecCo
         }
         case "condition": {
           const verdict = await evalJsonata(node.config?.expression, { input: lastOutput, vars });
-          const branch = verdict ? node.nextTrue : node.nextFalse;
-          steps.push({ nodeId: node.id, nodeType: node.type, status: "OK", output: { result: Boolean(verdict) }, durationMs: Date.now() - began });
+          // JSONata truth, not JS truth: [] and {} are false to the expression
+          // language the README calls a "JSONata truth test" — and JS calls
+          // both true, so the empty case used to take nextTrue.
+          const result = await jsonataTruth(verdict);
+          const branch = result ? node.nextTrue : node.nextFalse;
+          steps.push({ nodeId: node.id, nodeType: node.type, status: "OK", output: { result }, durationMs: Date.now() - began });
           current = branch ? byId.get(branch) : undefined;
           break;
         }
@@ -233,8 +265,14 @@ export async function executeGraph(def: WorkflowDef, input: unknown, ctx: ExecCo
           break;
         }
         case "loop": {
-          const items = (await evalJsonata(node.config?.items, { input: lastOutput, vars })) as unknown;
-          const list = Array.isArray(items) ? items.slice(0, MAX_LOOP_ITEMS) : [];
+          const evaluated = await evalJsonata(node.config?.items, { input: lastOutput, vars });
+          // JSONata collapses a one-element sequence to the value itself, so
+          // "a list with one match" arrives here as that bare value — running
+          // zero iterations for it was the silent version of this bug. Only
+          // "no value at all" is no items.
+          const all =
+            Array.isArray(evaluated) ? evaluated : evaluated === null || evaluated === undefined ? [] : [evaluated];
+          const list = all.slice(0, MAX_LOOP_ITEMS);
           const rawDo: unknown = node.config?.do;
           const doIds: string[] = typeof rawDo === "string" ? [rawDo] : Array.isArray(rawDo) ? rawDo.filter((d: unknown): d is string => typeof d === "string") : [];
           const body = doIds.map((id: string) => byId.get(id)).filter((n: FlowNode | undefined): n is FlowNode => Boolean(n));
@@ -253,9 +291,18 @@ export async function executeGraph(def: WorkflowDef, input: unknown, ctx: ExecCo
               if (steps.length >= MAX_STEPS) break;
             }
           }
-          loopOutputs = collected;
+          // Loops pool their outputs until a merge flushes them: a second
+          // loop before the merge used to replace the first loop's items and
+          // silently drop half the data.
+          loopOutputs = [...loopOutputs, ...collected];
           lastOutput = collected;
-          steps.push({ nodeId: node.id, nodeType: node.type, status: "OK", output: { items: collected.length }, durationMs: Date.now() - began });
+          steps.push({
+            nodeId: node.id,
+            nodeType: node.type,
+            status: "OK",
+            output: { items: collected.length, ...(all.length > list.length ? { evaluated: all.length } : {}) },
+            durationMs: Date.now() - began,
+          });
           current = node.next ? byId.get(node.next) : undefined;
           break;
         }

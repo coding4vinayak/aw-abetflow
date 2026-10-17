@@ -37,7 +37,7 @@ the auth and validation guards, with no server and no database.
 | `set_variable` | Stores `{{input.*}}`/`{{vars.*}}` into `vars.name`. On object flows the field joins the object so downstream `input.*` keeps working. |
 | `delay` | Sleeps up to 300s. |
 | `llm` | `classify` \| `extract` \| `summarize` \| `transform` via an OpenAI-compatible model. Fails loudly without a key — route failures through `onError`/`continueOnFail`. |
-| `loop` | Evaluates `items` to an array, runs the `do` node(s) per item (max 100), collects outputs. |
+| `loop` | Evaluates `items` to a list, runs the `do` node(s) per item (max 100; a single value counts as one item), collects outputs. |
 | `merge` | Emits the collected loop outputs as one array. |
 | `note` | No-op log line. Useful as a branch terminator. |
 
