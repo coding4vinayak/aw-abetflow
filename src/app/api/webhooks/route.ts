@@ -3,6 +3,7 @@ import { withAuth, authedWorkspaceId } from "@/lib/apikeys";
 import { prisma } from "@/lib/db";
 import { readJson, validateBody, eventNames, NO_FIELD_TO_UPDATE } from "@/lib/validate";
 import { unknownEventsProblem, webhookPreview } from "@/lib/webhooks";
+import { classifyTarget } from "@/lib/egress";
 import { WEBHOOK_CREATE, WEBHOOK_PATCH } from "@/lib/fields";
 import crypto from "crypto";
 
@@ -50,6 +51,13 @@ async function POST_impl(request: Request) {
   const unknown = unknownEventsProblem(events.values);
   if (unknown) return NextResponse.json({ error: unknown }, { status: 400 });
 
+  // The destination is refused here when it names an internal address — the
+  // same rule `assertAllowedTarget` enforces immediately above the delivery
+  // fetch — so a subscription that could never deliver is not stored. The
+  // documented local override (`ABET_ALLOW_PRIVATE_TARGETS=1`) still applies.
+  const target = await classifyTarget(input.data.url, "url");
+  if (!target.ok) return NextResponse.json({ error: target.reason }, { status: 400 });
+
   const secret = crypto.randomBytes(32).toString("hex");
   const webhook = await prisma.webhook.create({
     data: { workspaceId, url: input.data.url, events: events.values.join(","), secret },
@@ -86,6 +94,12 @@ async function PATCH_impl(request: Request) {
   if (events?.ok) {
     const unknown = unknownEventsProblem(events.values);
     if (unknown) return NextResponse.json({ error: unknown }, { status: 400 });
+  }
+
+  // Same refusal as POST when the patch repoints the subscription.
+  if (input.data.url !== undefined) {
+    const target = await classifyTarget(input.data.url, "url");
+    if (!target.ok) return NextResponse.json({ error: target.reason }, { status: 400 });
   }
 
   const data = { ...input.data, ...(events?.values ? { events: events.values.join(",") } : {}) };
