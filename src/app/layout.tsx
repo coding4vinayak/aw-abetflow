@@ -5,8 +5,18 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, ""),
+  ),
   title: "AbetFlow - Workflow automation your ops team can ship",
   description: "Triggers, branches, loops and 30+ connectors with a dead-letter queue",
+  openGraph: {
+    siteName: "Abetworks",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
