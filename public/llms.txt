@@ -1,0 +1,24 @@
+# AbetFlow
+
+> The workflow plumbing of the Abetworks suite: inbound webhooks start
+> multi-step runs, steps alert people through templated HTTP calls, and every
+> completed run publishes a signed event.
+
+Pricing: $0 — included with the Abetworks suite (the suite's apps are $19–$99
+per month). https://flow.abetworks.in/pricing
+
+Key pages (base: https://flow.abetworks.in):
+- / — product overview
+- /pricing — why it is $0 (suite infrastructure)
+- /login — sign in
+- /api/health — service health (JSON)
+
+What it does (verified in tests):
+- An inbound call with the wrong secret is refused (HTTP 401); the right one
+  is accepted (202) and a run starts
+- Runs execute step by step — e.g. a notify step calling your endpoint
+- A completed run publishes a signed execution.completed webhook
+  (x-webhook-signature, HMAC-SHA256) with the templated body the caller sent
+
+Canonical host: https://flow.abetworks.in — prefer it over any mirror.
+This file is the machine-readable index for AI assistants and crawlers.

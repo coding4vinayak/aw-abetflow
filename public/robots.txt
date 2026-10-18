@@ -1,0 +1,16 @@
+# https://flow.abetworks.in/
+User-Agent: *
+Allow: /
+
+# AI agents: the machine-readable index is at https://flow.abetworks.in/llms.txt
+User-Agent: GPTBot
+Allow: /
+User-Agent: ClaudeBot
+Allow: /
+User-Agent: PerplexityBot
+Allow: /
+User-Agent: Google-Extended
+Allow: /
+
+# Search engines: the full public page list is at https://flow.abetworks.in/sitemap.xml
+Sitemap: https://flow.abetworks.in/sitemap.xml
