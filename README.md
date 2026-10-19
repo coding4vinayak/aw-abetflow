@@ -320,8 +320,9 @@ workflow around it.
 
 ## Credentials
 
-Values are sealed with AES-256-GCM (`ENCRYPTION_KEY`, 32 bytes hex) and only
-ciphertext is stored. Listing returns names, never values. A row that no
+Values are sealed with AES-256-GCM (`ENCRYPTION_KEY`: 64 hex chars, or a
+base64-encoded 32-byte value — Render's Blueprint `generateValue` output is
+accepted) and only ciphertext is stored. Listing returns names, never values. A row that no
 longer decrypts is skipped at resolve time; the node that needed it fails
 with its own name on the error.
 
