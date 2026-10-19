@@ -3,17 +3,30 @@ import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
 
+/**
+ * The 32-byte key, from either shape an operator realistically has: 64 hex
+ * chars (`openssl rand -hex 32`, optionally `0x`-prefixed) or a base64-encoded
+ * 32-byte value — which is exactly what Render's Blueprint `generateValue:
+ * true` creates. Anything else fails closed, and the message names both shapes.
+ */
 function encryptionKey(): Buffer {
   const raw = process.env.ENCRYPTION_KEY;
   if (!raw) {
     throw new Error(
       "ENCRYPTION_KEY is not set. Generate one with `openssl rand -hex 32` " +
-        "and export it before storing credentials.",
+        "(or let Render's Blueprint generate it) before storing credentials.",
     );
   }
-  const key = Buffer.from(raw.replace(/^0x/, ""), "hex");
+  const hex = raw.replace(/^0x/, "");
+  const key = /^[0-9a-fA-F]{64}$/.test(hex)
+    ? Buffer.from(hex, "hex")
+    : /^[A-Za-z0-9+/]+={0,2}$/.test(raw)
+      ? Buffer.from(raw, "base64")
+      : Buffer.alloc(0);
   if (key.length !== 32) {
-    throw new Error("ENCRYPTION_KEY must be 32 bytes, hex-encoded (64 hex chars).");
+    throw new Error(
+      "ENCRYPTION_KEY must be 32 bytes: 64 hex chars, or a base64-encoded 32-byte value.",
+    );
   }
   return key;
 }

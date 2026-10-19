@@ -10,7 +10,7 @@ services:
     runtime: node
     plan: free
     region: singapore
-    healthCheckPath: /
+    healthCheckPath: /api/health
     buildCommand: npm ci && npx prisma generate && npm run build
     startCommand: npx prisma migrate deploy && npm run start
     envVars:
@@ -22,5 +22,26 @@ services:
         sync: false       # Postgres connection string (SQLite default is dev-only)
       - key: REDIS_URL
         sync: false       # BullMQ broker for the queues src/lib/queue.ts declares
+      - key: ENCRYPTION_KEY
+        generateValue: true  # seals stored credentials (AES-256-GCM); both the
+                             # generated base64 value and 64 hex chars are accepted
+      - key: RESEND_API_KEY
+        sync: false       # optional; without a provider mail is logged, not sent
+      - key: EMAIL_FROM
+        sync: false       # e.g. "Abetworks <noreply@abetworks.in>" — also the default
+      - key: EMAIL_WEBHOOK_URL
+        sync: false       # alternative to Resend; same {from,to,subject,html,text} JSON
+      - key: EMAIL_WEBHOOK_TOKEN
+        sync: false       # sent as Authorization: Bearer to EMAIL_WEBHOOK_URL
+      - key: LLM_API_KEY
+        sync: false       # optional; falls back to the deterministic engine
+      - key: LLM_BASE_URL
+        sync: false       # default: https://api.openai.com/v1
+      - key: LLM_MODEL
+        sync: false
+      - key: LLM_TIMEOUT_MS
+        sync: false       # default: 12000
+      - key: SESSION_COOKIE
+        sync: false       # cookie name; default: abetworks_session
       - key: PRODUCT_NAME
         value: "abetflow"
