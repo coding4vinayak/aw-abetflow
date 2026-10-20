@@ -19,6 +19,8 @@ What it does (verified in tests):
 - Runs execute step by step — e.g. a notify step calling your endpoint
 - A completed run publishes a signed execution.completed webhook
   (x-webhook-signature, HMAC-SHA256) with the templated body the caller sent
+- Owners and admins can take a workspace JSON and a streamed execution-audit CSV;
+  credential ciphertext/IV, webhook secrets, API keys and invitation tokens stay behind
 
 Canonical host: https://flow.abetworks.in — prefer it over any mirror.
 This file is the machine-readable index for AI assistants and crawlers.

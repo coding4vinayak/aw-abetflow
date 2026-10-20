@@ -23,8 +23,18 @@ export default function Page() {
               <li>Live demo workspace, no card required.</li>
             </ul>
           </div>
+          <div>
+            <p className="text-sm text-gray-600">October 2026</p>
+            <h2 className="text-lg font-bold">v1.1.0 — Take the audit trail with you</h2>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-gray-600">
+              <li>Owners and admins can download a workspace JSON with workflows, version history, variables, webhook destinations and credential names.</li>
+              <li>Execution audits download as a streamed CSV: one row per execution with its complete ordered step trace. Credential ciphertext/IV, webhook signing secrets, API keys and invitation tokens are never included.</li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">September 2026</p>
+          </div>
         </div>
-        <p className="mt-8 text-gray-600">How we version: <code>major.minor.patch</code>. Minor adds features, patch fixes bugs, major is reserved for contract changes — and those are announced here first.</p>
       </main>
       <SiteFooter />
     </div>

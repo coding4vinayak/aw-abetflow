@@ -202,10 +202,39 @@ Deliberately **not** key-gated: `GET /api/health`, the provider inbound
 webhook receivers (Twilio/WhatsApp/LinkedIn — they authenticate by their own
 protocol), and `POST /api/billing/webhook` (Stripe signature).
 
+## Export
+
+The terms say a workspace owner can export anytime, and the privacy page tells a
+departing customer to take a copy first. Two session-authenticated doors make
+that true:
+
+| Door | What it returns |
+| --- | --- |
+| `GET /api/export` | Workspace JSON: team, invitations, workflows with version history, variables, webhook destinations and credential names. It names the execution count and points at the stream. |
+| `GET /api/export/executions` | Execution audit as streamed CSV: one row per execution with the complete ordered step trace in `steps_json`, paged by id in batches so a high-volume workspace never has to fit in memory. |
+
+Both are owner/admin only: a member gets `403`, anonymous `401`. They leave
+credentials behind — password digests, session tokens, API keys and hashes,
+invitation token hashes, credential ciphertext/IV, webhook signing secrets and
+Stripe ids. A credential row keeps its name and provider but drops `ciphertext`
+and `iv`; a webhook subscription keeps its destination/event list and drops its
+signing key. Downloads are `no-store` and `nosniff`; the filename is sanitised
+from the workspace slug. CSV text starting `=`, `+`, `-`, `@`, tab or CR is
+prefixed with an apostrophe, so an execution input or workflow name cannot
+become a spreadsheet formula.
+
+## Authentication
+
+Every management route is workspace-scoped and requires an API key, except the
+session-only export and billing doors noted below. A browser session is the other half — see [Accounts](#accounts-browser). `workspaceId`
+in the query or body is **checked against the key** — a mismatch is a `403`,
+not a silent cross-tenant read.
+
 ## API
 
-All routes below need the key from [Authentication](#authentication) —
-the snippets omit the header for width.
+All routes below need the key from [Authentication](#authentication) unless the
+comment says `session`; those take the signed-in browser session instead. The
+snippets omit the header for width.
 
 ```
 GET    /api/health                         # liveness + DB ping, no key
@@ -229,6 +258,8 @@ GET    /api/webhooks?workspaceId=          # outbound subscriptions (secrets pre
 POST   /api/webhooks                       # subscribe; returns the signing secret once
 PATCH  /api/webhooks?id={id}               # move the URL, re-filter events, silence
 DELETE /api/webhooks?id={id}               # remove (404 if not in this workspace)
+GET    /api/export                         # workspace JSON (session; owner/admin)
+GET    /api/export/executions              # execution audit CSV, streamed (session; owner/admin)
 ```
 
 **A DELETE for a row that is not there answers 404, never 500.** The `{id}` routes look the
