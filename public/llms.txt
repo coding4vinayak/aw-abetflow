@@ -17,6 +17,9 @@ What it does (verified in tests):
 - An inbound call with the wrong secret is refused (HTTP 401); the right one
   is accepted (202) and a run starts
 - Runs execute step by step — e.g. a notify step calling your endpoint
+- Steps transform payloads with JSONata, not with arbitrary code
+- Runs can be scheduled, and a run is a record you can read back: what it
+  touched, what it sent and what it answered
 - A completed run publishes a signed execution.completed webhook
   (x-webhook-signature, HMAC-SHA256) with the templated body the caller sent
 - Owners and admins can take a workspace JSON and a streamed execution-audit CSV;
