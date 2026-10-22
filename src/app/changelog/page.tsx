@@ -15,12 +15,12 @@ export default function Page() {
         <p className="mt-2 text-gray-600">Newest first. Breaking changes are marked <strong>BREAKING</strong> and get 30 days&apos; notice here before they ship.</p>
         <div className="mt-8 space-y-8 border-l-2 border-blue-600 pl-6">
           <div>
-            <p className="text-sm text-gray-600">September 2026</p>
-            <h2 className="text-lg font-bold">v1.0.0 — Initial public release</h2>
+            <p className="text-sm text-gray-600">October 2026</p>
+            <h2 className="text-lg font-bold">v1.2.0 — See it run before you build it</h2>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-gray-600">
-              <li>General availability: Triggers, nine node types, JSONata transforms, and an execution log for every step. No code execution, no hanging workers, no mystery failures.</li>
-              <li>Public pricing, terms, privacy, and support pages.</li>
-              <li>Live demo workspace, no card required.</li>
+              <li>A new workspace can load one example workflow in a click: a lead arrives, is read, and is routed by size. It runs immediately, so the trace on the screen is the engine&rsquo;s own — every node, what it saw, and what it produced.</li>
+              <li>It needs nothing external to run: no credentials, no SMTP server, no HTTP endpoint.</li>
+              <li>The example is example data by name, and one click removes it and its run. Nothing of yours is touched.</li>
             </ul>
           </div>
           <div>
@@ -33,6 +33,12 @@ export default function Page() {
           </div>
           <div>
             <p className="text-sm text-gray-600">September 2026</p>
+            <h2 className="text-lg font-bold">v1.0.0 — Initial public release</h2>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-gray-600">
+              <li>General availability: Triggers, nine node types, JSONata transforms, and an execution log for every step. No code execution, no hanging workers, no mystery failures.</li>
+              <li>Public pricing, terms, privacy, and support pages.</li>
+              <li>Live demo workspace, no card required.</li>
+            </ul>
           </div>
         </div>
       </main>
