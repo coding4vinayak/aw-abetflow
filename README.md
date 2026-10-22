@@ -22,9 +22,28 @@ npm run db:seed             # demo workspace + deal-triage workflow + sample run
 npm run dev                 # http://localhost:3500
 ```
 
-`npm run test` runs 145 unit tests (`# tests 145`, `# pass 145`, `# fail 0`, measured
-2026-10-06) over the executor, the cron parser, the queue module, the route handlers and
+`npm run test` runs the unit tests over the executor, the cron parser, the queue module, the route handlers and
 the auth and validation guards, with no server and no database.
+
+## The first run
+
+A new workspace used to start on an empty dashboard whose only advice was
+"create one via `POST /api/workflows`" — advice for a buyer who already writes
+code. So a new workspace now gets **one example workflow that has already run**:
+
+- `POST /api/example-workflow` (session or key) loads it and runs it, through
+  the same runner a manual run, a webhook and a cron all use. The trace on the
+  screen is the engine's own — every node, what it saw, and what it produced.
+- It needs nothing external to run: no credentials, no SMTP server, no HTTP
+  endpoint.
+- The example is example data by name ("Example: inbound lead triage"), and
+  `DELETE /api/example-workflow` takes it and its run away. Nothing of yours is
+  touched — the removal finds the example by its exact name, and the delete
+  cascades to that workflow's versions, executions and step traces.
+
+`npm run check:first-run` builds a throwaway database from the committed
+migrations and checks the two things the unit tests cannot: that a second load
+stacks nothing, and that the removal leaves the customer's own flow alone.
 
 ## Nodes
 
@@ -260,6 +279,8 @@ PATCH  /api/webhooks?id={id}               # move the URL, re-filter events, sil
 DELETE /api/webhooks?id={id}               # remove (404 if not in this workspace)
 GET    /api/export                         # workspace JSON (session; owner/admin)
 GET    /api/export/executions              # execution audit CSV, streamed (session; owner/admin)
+POST   /api/example-workflow               # load the example workflow and run it (session or key)
+DELETE /api/example-workflow               # take it and its run away again (session or key)
 ```
 
 **A DELETE for a row that is not there answers 404, never 500.** The `{id}` routes look the

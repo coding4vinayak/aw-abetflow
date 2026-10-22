@@ -199,6 +199,7 @@ describe("nextRunAt is computed once, at every writer", () => {
         "app/api/workflows/[id]/versions/route.ts",
         "app/api/workflows/route.ts",
         "app/workflow-actions.ts",
+        "lib/example-workflow.ts",
         "lib/scheduler.ts",
       ],
       "if a writer appears here that this list does not hold, the rules below now cover it — that is the point",

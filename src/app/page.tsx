@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteNav, SiteFooter } from "@/components/site";
+import { VERSION } from "@/lib/version";
 
 export const metadata: Metadata = {
   title: "AbetFlow — Automation your ops team can ship on a Tuesday.",
@@ -14,7 +15,7 @@ export default function Home() {
       <main>
         <section className="mx-auto max-w-4xl px-6 pb-16 pt-20 text-center">
           <p className="inline-block rounded-full bg-blue-50 text-blue-700 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
-            v1.0 · Now generally available
+            v{VERSION} · Now generally available
           </p>
           <h1 className="mt-6 text-5xl font-bold tracking-tight">AbetFlow</h1>
           <p className="mx-auto mt-4 max-w-2xl text-xl text-gray-600">Automation your ops team can ship on a Tuesday.</p>
@@ -62,7 +63,7 @@ export default function Home() {
             <h2 className="text-2xl font-bold">Live in three steps</h2>
           <div className="flex gap-4">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">1</span>
-            <div><p className="font-bold text-gray-900">Pick the deal-triage flow</p><p className="mt-1 text-sm text-gray-600">The demo workspace ships a real workflow with a sample run. Clone it or start blank.</p></div>
+            <div><p className="font-bold text-gray-900">Pick the deal-triage flow</p><p className="mt-1 text-sm text-gray-600">The demo workspace ships a real workflow with a sample run. Load it into your own workspace in one click, or start blank.</p></div>
           </div>
           <div className="flex gap-4">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">2</span>
