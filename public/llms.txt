@@ -12,6 +12,7 @@ Key pages (base: https://flow.abetworks.in):
 - /pricing — why it is $0 (suite infrastructure)
 - /login — sign in
 - /api/health — service health (JSON)
+- /api/openapi — the API contract (OpenAPI 3.1; /openapi.json is the same document)
 
 What it does (verified in tests):
 - An inbound call with the wrong secret is refused (HTTP 401); the right one
