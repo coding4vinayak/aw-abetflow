@@ -16,6 +16,13 @@ export default function Page() {
         <div className="mt-8 space-y-8 border-l-2 border-blue-600 pl-6">
           <div>
             <p className="text-sm text-gray-600">October 2026</p>
+            <h2 className="text-lg font-bold">v1.4.0 — The suite&rsquo;s companions link to their own sign-ups</h2>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-gray-600">
+              <li>On this page&rsquo;s suite section, AbetAgent, LeadGenius and LeadWorks now link to their own products&rsquo; homes instead of a letter to support — a buyer who wants that product can start there. The one-contract offer stays one click away as a mailto.</li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">October 2026</p>
             <h2 className="text-lg font-bold">v1.3.0 — The API contract, in the format every tool probes first</h2>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-gray-600">
               <li>AbetFlow sells on its API: inbound webhooks start runs, steps call your endpoints, completed runs publish signed webhooks. That machine is now described by one OpenAPI 3.1 document — <code>/api/openapi</code> and <code>/openapi.json</code>, readable without a key.</li>

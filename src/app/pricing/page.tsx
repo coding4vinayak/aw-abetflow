@@ -34,16 +34,23 @@ export default function Page() {
           </div>
         </div>
         <h2 className="mt-12 text-xl font-bold">Also in the Abetworks suite</h2>
-        <p className="mt-2 text-gray-600">AbetFlow is free because it is the plumbing the rest of the suite sits on. These are the products teams pair it with — write to us and we will set up one workspace across all of them.</p>
+        <p className="mt-2 text-gray-600">
+          AbetFlow is free because it is the plumbing the rest of the suite sits on. These are the
+          products teams pair it with — each has its own sign-up, and{" "}
+          <a href="mailto:support@abetworks.in?subject=One%20workspace%20across%20the%20Abetworks%20suite" className="underline">
+            one contract can set up a workspace across all of them
+          </a>
+          .
+        </p>
         <div className="mt-6 space-y-3">
-          <a href="mailto:support@abetworks.in?subject=AbetAgent%20for%20me" className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:bg-gray-50 transition">
+          <a href="https://abetagent.abetworks.in" className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:bg-gray-50 transition">
             <span className="font-semibold text-gray-900">AbetAgent</span> <span className="text-gray-600">— agents with citations, step traces and human escalation. $99 per month.</span>
           </a>
-          <a href="mailto:support@abetworks.in?subject=LeadGenius%20for%20me" className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:bg-gray-50 transition">
-            <span className="font-semibold text-gray-900">LeadGenius</span> <span className="text-gray-600"> — multichannel outreach with warmup and deliverability guardrails. $29 per user per month.</span>
+          <a href="https://leadgenius.abetworks.in" className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:bg-gray-50 transition">
+            <span className="font-semibold text-gray-900">LeadGenius</span> <span className="text-gray-600">— multichannel outreach with warmup and deliverability guardrails. $29 per user per month.</span>
           </a>
-          <a href="mailto:support@abetworks.in?subject=LeadWorks%20for%20me" className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:bg-gray-50 transition">
-            <span className="font-semibold text-gray-900">LeadWorks</span> <span className="text-gray-600"> — sources, scraping, enrichment, validation and exports in one pipeline. $49 per month.</span>
+          <a href="https://leadworks.abetworks.in" className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:bg-gray-50 transition">
+            <span className="font-semibold text-gray-900">LeadWorks</span> <span className="text-gray-600">— sources, scraping, enrichment, validation and exports in one pipeline. $49 per month.</span>
           </a>
         </div>
         <h2 className="mt-12 text-xl font-bold">Questions</h2>
