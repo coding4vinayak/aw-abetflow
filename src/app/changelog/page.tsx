@@ -16,6 +16,14 @@ export default function Page() {
         <div className="mt-8 space-y-8 border-l-2 border-blue-600 pl-6">
           <div>
             <p className="text-sm text-gray-600">October 2026</p>
+            <h2 className="text-lg font-bold">v1.5.0 — The deep-content file</h2>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-gray-600">
+              <li><code>/llms-full.txt</code> serves the whole substance in one fetch for AI assistants: the shipped index carried verbatim, then every one of the contract&rsquo;s 30 operations with its own summary and the door it declares. Built from the index and the contract themselves, not from hand-written prose, so it cannot say more than the product does.</li>
+              <li>A test holds the generated file against the live sources — after the index or the contract changes, a stale full file fails the build naming the first line that moved.</li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">October 2026</p>
             <h2 className="text-lg font-bold">v1.4.0 — The suite&rsquo;s companions link to their own sign-ups</h2>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-gray-600">
               <li>On this page&rsquo;s suite section, AbetAgent, LeadGenius and LeadWorks now link to their own products&rsquo; homes instead of a letter to support — a buyer who wants that product can start there. The one-contract offer stays one click away as a mailto.</li>
