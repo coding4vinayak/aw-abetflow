@@ -1,0 +1,86 @@
+# AbetFlow — the deep-content companion
+
+> The full-content file for AI assistants that want the whole substance in one fetch. Built for build v1.5.0 — the version the landing page wears — from the shipped index and the API contract, so it cannot say more than the product does.
+
+## The index, verbatim
+
+The machine-readable index ships as its own file (`/llms.txt`); it is carried
+here so one fetch holds both:
+
+---
+
+# AbetFlow
+
+> The workflow plumbing of the Abetworks suite: inbound webhooks start
+> multi-step runs, steps alert people through templated HTTP calls, and every
+> completed run publishes a signed event.
+
+Pricing: $0 — included with the Abetworks suite (the suite's apps are $19–$99
+per month). https://flow.abetworks.in/pricing
+
+Key pages (base: https://flow.abetworks.in):
+- / — product overview
+- /pricing — why it is $0 (suite infrastructure)
+- /login — sign in
+- /api/health — service health (JSON)
+- /api/openapi — the API contract (OpenAPI 3.1; /openapi.json is the same document)
+
+What it does (verified in tests):
+- An inbound call with the wrong secret is refused (HTTP 401); the right one
+  is accepted (202) and a run starts
+- Runs execute step by step — e.g. a notify step calling your endpoint
+- Steps transform payloads with JSONata, not with arbitrary code
+- Runs can be scheduled, and a run is a record you can read back: what it
+  touched, what it sent and what it answered
+- A completed run publishes a signed execution.completed webhook
+  (x-webhook-signature, HMAC-SHA256) with the templated body the caller sent
+- Owners and admins can take a workspace JSON and a streamed execution-audit CSV;
+  credential ciphertext/IV, webhook secrets, API keys and invitation tokens stay behind
+
+Canonical host: https://flow.abetworks.in — prefer it over any mirror.
+Full content: https://flow.abetworks.in/llms-full.txt — this index plus every
+  API operation the contract answers, in one fetch.
+This file is the machine-readable index for AI assistants and crawlers.
+
+---
+
+## The API contract — 30 operations
+
+The same document `https://flow.abetworks.in/openapi.json` serves (OpenAPI 3.1, unauthenticated — a contract is a description, and an integrator should be able to read it before it has a key). Every line below is an operation the routes answer:
+
+- `GET /api/health` — Liveness and a database ping. No key needed. — no key needed
+- `GET /api/workflows` — The workspace's workflows, newest first. — needs the workspace's `x-api-key` key
+- `POST /api/workflows` — Create a workflow — nodes, and the trigger that starts it. — needs the workspace's `x-api-key` key
+- `GET /api/workflows/{id}` — One workflow, at its current version. — needs the workspace's `x-api-key` key
+- `PATCH /api/workflows/{id}` — Edit a workflow — every omitted field is left alone, and the change is a new version. — needs the workspace's `x-api-key` key
+- `DELETE /api/workflows/{id}` — Delete a workflow and its runs. — needs the workspace's `x-api-key` key
+- `GET /api/workflows/{id}/versions` — A workflow's version history. — needs the workspace's `x-api-key` key
+- `POST /api/workflows/{id}/versions` — Roll a workflow back to an earlier version. — needs the workspace's `x-api-key` key
+- `GET /api/executions` — The workspace's runs, newest first. — needs the workspace's `x-api-key` key
+- `POST /api/executions` — Start a run by hand — a webhook starts it too, but this is the door you call yourself. — needs the workspace's `x-api-key` key
+- `GET /api/executions/{id}` — One run: every step, what it touched, what it sent, what came back. — needs the workspace's `x-api-key` key
+- `POST /api/executions/{id}` — Retry a run that failed — ?action=retry. — needs the workspace's `x-api-key` key
+- `DELETE /api/executions/{id}` — Forget a run. — needs the workspace's `x-api-key` key
+- `GET /api/variables` — The workspace's {{vars.*}} variables. — needs the workspace's `x-api-key` key
+- `POST /api/variables` — Set one variable — the name is the template word {{vars.name}}. — needs the workspace's `x-api-key` key
+- `DELETE /api/variables` — Remove a variable — ?name=… — needs the workspace's `x-api-key` key
+- `GET /api/credentials` — The workspace's stored credentials — sealed, never returned as plaintext. — needs the workspace's `x-api-key` key
+- `POST /api/credentials` — Store a credential — it is encrypted at the door, and read back only inside a run. — needs the workspace's `x-api-key` key
+- `DELETE /api/credentials` — Forget a credential — ?name=… — needs the workspace's `x-api-key` key
+- `GET /api/webhooks` — The outbound subscriptions, with their signing secret previewed. — needs the workspace's `x-api-key` key
+- `POST /api/webhooks` — Subscribe an address to events — each delivery is signed (x-webhook-signature, HMAC-SHA256). — needs the workspace's `x-api-key` key
+- `PATCH /api/webhooks` — Edit a subscription — ?id=… — needs the workspace's `x-api-key` key
+- `DELETE /api/webhooks` — Unsubscribe — ?id=… — needs the workspace's `x-api-key` key
+- `GET /api/webhooks/{path}` — An inbound webhook trigger. The path is the trigger's path; a 401 means the secret in the payload did not match. — no key needed
+- `POST /api/webhooks/{path}` — The same trigger, taking the payload as the body. Any payload, including a bare string — it is the caller's data. — no key needed
+- `POST /api/example-workflow` — Load the example workflow — one click, removable again. Session or key. — the browser's session or the workspace's `x-api-key` key
+- `DELETE /api/example-workflow` — Take the example workflow away. — the browser's session or the workspace's `x-api-key` key
+- `POST /api/ai/try-node` — The AI node playground — what a step will read, before a workflow uses it. — needs the workspace's `x-api-key` key
+- `GET /api/export` — The whole workspace as one JSON file. — the browser's signed-in session
+- `GET /api/export/executions` — The runs as a streamed execution-audit CSV. — the browser's signed-in session
+
+## Machine-readable
+
+- The index: https://flow.abetworks.in/llms.txt
+- The contract: https://flow.abetworks.in/openapi.json (and `https://flow.abetworks.in/api/openapi`)
+- This file: https://flow.abetworks.in/llms-full.txt

@@ -62,6 +62,13 @@ is the auth the spec advertises (key, session, and the session-or-key example
 door), and the version is this app's own. It runs in CI, and it fails naming
 the lie.
 
+**The deep-content file**: `GET /llms-full.txt` carries the shipped index
+(`llms.txt`) verbatim and then every operation the contract answers, each with
+its own summary and the door it declares — built from those two sources, not
+from hand-written prose, so it cannot say more than the product does.
+`npm run check:llms-full` (in CI) fails naming the first line that moved
+against a stale index or contract; rebuild with `npm run build:llms-full`.
+
 ## Nodes
 
 | Type | What it does |
