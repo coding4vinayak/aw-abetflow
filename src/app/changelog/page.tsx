@@ -16,6 +16,15 @@ export default function Page() {
         <div className="mt-8 space-y-8 border-l-2 border-blue-600 pl-6">
           <div>
             <p className="text-sm text-gray-600">October 2026</p>
+            <h2 className="text-lg font-bold">v1.3.0 — The API contract, in the format every tool probes first</h2>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-gray-600">
+              <li>AbetFlow sells on its API: inbound webhooks start runs, steps call your endpoints, completed runs publish signed webhooks. That machine is now described by one OpenAPI 3.1 document — <code>/api/openapi</code> and <code>/openapi.json</code>, readable without a key.</li>
+              <li>Every request body, door (key, session, or either), field limit and rollback whole-number rule in the document is checked against the routes by build: <code>npm run check:contract</code> runs in CI and fails naming the lie.</li>
+              <li>When the document is written ahead of the code, it fails — it was caught claiming a key door on <code>/api/health</code> and inventing an <code>autoRetry</code> field the route never reads, and it did the same on the flagship AbetAnalytics, where it caught 4 mistakes of its own.</li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">October 2026</p>
             <h2 className="text-lg font-bold">v1.2.0 — See it run before you build it</h2>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-gray-600">
               <li>A new workspace can load one example workflow in a click: a lead arrives, is read, and is routed by size. It runs immediately, so the trace on the screen is the engine&rsquo;s own — every node, what it saw, and what it produced.</li>

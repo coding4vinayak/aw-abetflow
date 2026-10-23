@@ -45,6 +45,23 @@ code. So a new workspace now gets **one example workflow that has already run**:
 migrations and checks the two things the unit tests cannot: that a second load
 stacks nothing, and that the removal leaves the customer's own flow alone.
 
+## The API contract
+
+The whole API is described by one document, in the OpenAPI 3.1 format every
+API tool probes first:
+
+- `/api/openapi` — the versioned home of the contract
+- `/openapi.json` — the conventional discovery path, the same document
+
+An integrator reads it without a key (a contract is a description, not data).
+It cannot drift from the product by hand: `npm run check:contract` compares
+every claim in it with the routes that serve it — every documented call has a
+route that answers it and vice versa, every request body is compared with the
+app's own declared field table (`src/lib/fields.ts`), the auth a route enforces
+is the auth the spec advertises (key, session, and the session-or-key example
+door), and the version is this app's own. It runs in CI, and it fails naming
+the lie.
+
 ## Nodes
 
 | Type | What it does |

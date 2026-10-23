@@ -48,6 +48,10 @@ const MAX_HANDLERS = 52;
  * Adding to this list is the review step: an empty-body check is not a reason.
  */
 const PUBLIC: Record<string, string[]> = {
+  // The contract is a description, not data: an integrator should be able to
+  // read it before it has a key, and the document holds no workspace's rows.
+  "src/app/api/openapi/route.ts": ["GET"],
+  "src/app/openapi.json/route.ts": ["GET"],
   "src/app/api/health/route.ts": ["GET"],
   // Keyed by the trigger's own secret, compared in constant time: parseTrigger
   // now rejects a webhook trigger with no secret unless public is set true.

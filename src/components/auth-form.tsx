@@ -65,6 +65,7 @@ function Field({
   required,
   autoFocus,
   invalid,
+  errorId,
 }: {
   label: string;
   name: string;
@@ -74,13 +75,16 @@ function Field({
   required?: boolean;
   autoFocus?: boolean;
   invalid?: boolean;
+  errorId?: string;
 }) {
+  const fieldId = `field-${name}`;
   return (
-    <label className="block">
+    <label htmlFor={fieldId} className="block">
       <span className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-gray-500">
         {label}
       </span>
       <input
+        id={fieldId}
         name={name}
         type={type}
         autoComplete={autoComplete}
@@ -88,8 +92,14 @@ function Field({
         required={required}
         autoFocus={autoFocus}
         aria-invalid={invalid || undefined}
+        aria-describedby={errorId}
         className={`${FIELD_CLASS} ${invalid ? "border-red-400" : ""}`}
       />
+      {invalid && errorId && (
+        <p id={errorId} className="mt-1 text-[11px] text-red-600" role="alert" aria-live="polite">
+          {errorId}
+        </p>
+      )}
     </label>
   );
 }
@@ -120,6 +130,12 @@ export function AuthForm({
   );
   const state = (isForgot ? resetState : authState) as AuthState & ResetState;
   const formAction = isForgot ? resetAction : authAction;
+
+  // Generate unique error IDs for accessibility
+  const nameErrorId = state.field === "name" && state.error ? "name-error" : undefined;
+  const workspaceErrorId = state.field === "workspace" && state.error ? "workspace-error" : undefined;
+  const emailErrorId = state.field === "email" && state.error ? "email-error" : undefined;
+  const passwordErrorId = state.field === "password" && state.error ? "password-error" : undefined;
 
   if (isForgot && resetState.sent) {
     return (
@@ -164,6 +180,7 @@ export function AuthForm({
             required
             autoFocus
             invalid={state.field === "name"}
+            errorId={nameErrorId}
           />
           <Field
             label="Team or company"
@@ -172,6 +189,7 @@ export function AuthForm({
             autoComplete="organization"
             placeholder="Northwind Logistics"
             invalid={state.field === "workspace"}
+            errorId={workspaceErrorId}
           />
         </>
       )}
@@ -185,6 +203,7 @@ export function AuthForm({
         required
         autoFocus={!isSignup}
         invalid={state.field === "email"}
+        errorId={emailErrorId}
       />
       {!isForgot && (
         <Field
@@ -194,7 +213,8 @@ export function AuthForm({
           autoComplete={isSignup ? "new-password" : "current-password"}
           placeholder={isSignup ? "At least 8 characters" : "••••••••"}
           required
-          invalid={state.field === "password"}
+          invalid={state.error !== undefined}
+          errorId={passwordErrorId}
         />
       )}
 
@@ -270,6 +290,9 @@ export function TokenRedeemForm({
   const state = (isVerify ? verifyState : redeemState) as VerifyState & RedeemState;
   const formAction = isVerify ? verifyAction : redeemAction;
 
+  // Generate unique error IDs for accessibility
+  const passwordErrorId = state.error ? "password-error" : undefined;
+
   if (state.verified) {
     return (
       <div className="rounded-md border border-green-200 bg-green-50 px-3 py-3 text-[13px] leading-relaxed text-gray-800">
@@ -309,6 +332,8 @@ export function TokenRedeemForm({
           placeholder="At least 8 characters"
           required
           autoFocus
+          invalid={state.error !== undefined}
+          errorId={passwordErrorId}
         />
       )}
       <SubmitButton label={label} accent={accent} />
