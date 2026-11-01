@@ -351,6 +351,15 @@ tenant can point one at this product with no adapter in between. `id` names
 the logical event (`evt_…`); a receiver that deduplicates on it is already
 correct on the day delivery grows retries.
 
+Every delivery also carries `X-Webhook-Timestamp` (send-time milliseconds) and
+`X-Webhook-Delivery` (the same `id`). nuCRM's plugin receiver enforces a 5-minute
+freshness window when the timestamp header is present and skips the check when it
+is absent, so a stale re-send is refused rather than accepted twice. The timestamp
+sits outside the signed bytes, so what a receiver can truly rely on is the delivery
+id: it is inside the body the digest covers, which means a receiver that remembers
+ids rejects the duplicate arrival and a replayer cannot hand it a new one without
+breaking the signature.
+
 Delivery is one attempt, inline, best-effort and never throwing: an endpoint
 that is down is logged and skipped, and never turns a committed run into a
 failure. `tests/unit/webhook-dispatch.test.ts` pins the wiring — an event
