@@ -80,6 +80,10 @@ test("the dispatcher signs the body once, under both spellings", () => {
     "the generic nuCRM-compatible spelling rides the same bytes",
   );
   assert.match(sender, /id: `evt_\$\{crypto\.randomBytes/, "the payload id is evt_-prefixed so a receiver can deduplicate");
+  assert.match(sender, /"X-Webhook-Timestamp": String\(Date\.now\(\)\)/,
+    "freshness: nuCRM's plugin receiver enforces the 5-minute window only when this header is present");
+  assert.match(sender, /"X-Webhook-Delivery": payload\.id/,
+    "the id inside the signed body — the value a receiver can dedupe on and a replayer cannot refresh");
 });
 
 test("every delivery passes the egress check immediately above its fetch", () => {
